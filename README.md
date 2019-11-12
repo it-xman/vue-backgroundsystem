@@ -544,3 +544,7 @@ export default {
 
 - 给输入框做图标应用
 
+```
+<i slot="prefix" class="iconfont icon-shoujihao"></i>
+```
+
