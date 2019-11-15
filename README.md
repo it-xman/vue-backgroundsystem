@@ -548,3 +548,180 @@ export default {
 <i slot="prefix" class="iconfont icon-shoujihao"></i>
 ```
 
+## 2. 后台首页
+
+### 2.1 绘制品字页面结构
+
+- 使用element-ui的 **布局容器** 找到合适的布局效果
+
+- 制作头部
+
+  - 两个部分，一左一右。只用弹性盒子将两部分分开居中。
+  - 左边设置一个可点击的伸缩左侧导航菜单的按钮还有后台系统介绍
+  - 右边盒子设置搜索框、消息提示、头像框及用户信息和 **element-ui** 的下拉菜单，菜单内设置需要的信息。
+
+- 制作左侧导航菜单
+
+  - 使用 element 组件的侧栏导航菜单
+
+    - 找到相应合适的组件拿来使用
+    - 设置叶子菜单
+      - index在父级菜单上边可以设置一个唯一属性用以区分彼此
+      - 在子菜单上后期可以设置请求#锚点信息，单击后也执行具体的导航
+
+  - 统一菜单的宽度都为200px
+
+  - 折叠展开效果
+
+    - 给el-menu设置相关属性
+
+      ```vue
+      :collapse="isCollapse"       // 控制折叠展开
+      :collapse-transition="false" // 禁用折叠动画
+      ```
+
+    - 创建data成员 isCollapse=false，控制折叠展开
+
+    - ```js
+      isCollapse: false  // false:展开   true:折叠
+      ```
+
+    - 给"图标"设置单击事件，折叠展开要显示不同的图标(unfold  和 fold 区分)
+
+      - 菜单折叠展开，小图标也要做变换显示操作
+
+      ```vue
+      <i
+              slot="prefix"
+              :class=" isCollapse ? 'el-icon-s-unfold' : 'el-icon-s-fold'"
+              @click="isCollapse=!isCollapse"
+              style="cursor: pointer;position: absolute; left: 18px"
+      >
+      </i>
+      ```
+
+    - 菜单宽度自适应
+
+      - 点击小图标以后宽度要缩小到65px以达到只显示小图标的左侧导航菜单
+
+- 整个首页面设计代码
+
+```html
+  <el-container>
+    <el-aside :width=" isCollapse? '65px' : '200px'">
+      <el-menu
+              background-color="#545c64"
+              text-color="#fff"
+              active-text-color="#ffd04b"
+              :collapse="isCollapse"
+              :collapse-transition="false"
+              router
+      >
+        <el-menu-item index="1" :style="{width:isCollapse? '65px' : '200px' }">
+          <i class="el-icon-location"></i>
+          <span slot="title">首页</span>
+        </el-menu-item>
+        <el-submenu index="2" :style="{width:isCollapse? '65px' : '200px' }">
+          <template slot="title">
+            <i class="el-icon-menu"></i>
+            <span>内容管理</span>
+          </template>
+          <el-menu-item index="2-1">发布文章</el-menu-item>
+          <el-menu-item index="2-2">文章列表</el-menu-item>
+          <el-menu-item index="2-3">评论列表</el-menu-item>
+          <el-menu-item index="2-4">素材管理</el-menu-item>
+        </el-submenu>
+        <el-menu-item index="3" :style="{width:isCollapse? '65px' : '200px' }">
+          <i class="el-icon-location"></i>
+          <span slot="title">粉丝管理</span>
+        </el-menu-item>
+        <el-menu-item index="4" :style="{width:isCollapse? '65px' : '200px' }">
+          <i class="el-icon-location"></i>
+          <span slot="title">账户管理</span>
+        </el-menu-item>
+      </el-menu>
+    </el-aside>
+    <el-container>
+      <el-header style="position: relative">
+        <div id="lt">
+          <i
+                  slot="prefix"
+                  :class=" isCollapse ? 'el-icon-s-unfold' : 'el-icon-s-fold'"
+                  @click="isCollapse=!isCollapse"
+                  style="cursor: pointer;position: absolute; left: 18px"
+          >
+          </i>
+          <span style="margin-left: 20px;">XCR后台管理系统</span>
+        </div>
+        <div id="rt">
+          <el-input type="text" placeholder="请输入搜索的文章内容" style="width: 300px">
+            <i slot="prefix" class="el-input__icon el-icon-search"></i>
+          </el-input>
+          <span style="margin: 0 30px 0 15px;">消息</span>
+          <el-dropdown trigger="click">
+            <span class="el-dropdown-link">
+              <img :src="photo" alt="" width="40" height="40" style="margin-right: 10px">
+              {{name}}
+              <i class="el-icon-arrow-down el-icon--right"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>个人信息</el-dropdown-item>
+              <el-dropdown-item>GitHub地址</el-dropdown-item>
+              <el-dropdown-item @click="logout()">退出</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+      </el-header>
+      <el-main>Main</el-main>
+    </el-container>
+  </el-container>
+
+```
+
+### 2.2 退出登录功能
+
+- 点击用户信息或头像显示退出按钮，点击退出按钮，确认是否退出，给与提示
+- 确认退出，删除缓存的用户信息，sessionStorage
+- 跳转到登录页面
+- 给退出按钮绑定点击事件的时候是给引用的element组件绑定事件
+  - 直接绑定@click事件不生效
+    - @click是vue事件绑定操作，具体是给普通的html标签使用的
+  - 需要设置 @click.native才会生效
+    - el-dropdown-item本身是一个“组件”，组件是组多html标签的集合体，这个集合体绑定事件，不知道具体给到那个标签使用，因此事件绑定失败
+    - 因此设置一个名称为native的修饰符(**事件修饰符**)，使得该事件作用到内部的html标签身上
+
+### 2.3 右侧welcome页面显示
+
+- 制作欢迎页面组件
+
+- 将页面组件添加到路由
+
+- 登录后台默认显示欢迎页面
+
+- 将其设置为home组件的子路由
+
+- 使用重定向，/home默认显示/welcome
+
+  ```js
+    {
+      path: '/home',
+      name: 'home',
+      component: () => import('@/views/home'),
+      redirect: '/welcome',
+      children: [
+        { path: '/welcome', name: 'welcome', component: () => import('@/views/welcome/Welcome.vue') }
+      ]
+    }
+  ```
+
+  - 注意：虽然有redirect重定向，component也需要保留
+
+- 给home/index.vue配置子组件显示占位符
+
+  ```vue
+        <el-main>
+          <router-view></router-view>
+        </el-main>
+  ```
+
+  
