@@ -163,6 +163,7 @@ export default {
 <style scoped lang="less">
   .box-card {
     margin-bottom: 15px;
+
   }
 
 </style>
