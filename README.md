@@ -724,4 +724,427 @@ export default {
         </el-main>
   ```
 
+
+## 3. 文章列表
+
+### 3.1 创建文章列表组件并设置路由
+
+- 创建文章列表组件
+
+- 将文章列表组件加入路由
+
+- 给后台首页的文章列表的index属性设置锚点信息
+
+  - 文章列表路由也是home的子路由
+
+- 需在el-num里设置 router 属性 ，让其激活路配置由，实现单击显示文章列表组件内容
+
+- el-menu组件可以使得本身的菜单项目具备**声明式导航**功能(类似router-link功能)
+
+  - 给el-menu设置**router**属性，使得路由导航功能被激活
+  - 在el-menu-item的**index**属性中配置锚点信息
+
+- Vue中属性绑定布尔值true，可以通过如下两种方式
+
+  ```html
+  <标签 :属性="true"><标签>   // 1.普通属性绑定
+  <标签 属性><标签>           // 2.直接声明空的属性名称
+  ```
+
+### 3.2 给文章列表设置具体内容
+
+- 绘制文章列表搜索区域**卡片**和 **表单域名称** 信息
+
+  - 使用element的卡片区组件
+    - 头部内容为命名插槽
+    - 内容主体为匿名插槽
+  - 设置el-form表单区域
+    - 文章状态
+    - 频道选择
+    - 时间选择
+
+- 状态表单域
+
+  - 绘制搜索文章的状态表单域(单选按钮)
+
+  - el-radio
+
+    ```vue
+              <el-form-item label="文章状态：">
+                <el-radio v-model="searchForm.status" label="">全部</el-radio>
+                <el-radio v-model="searchForm.status" label="0">草稿</el-radio>
+                <el-radio v-model="searchForm.status" label="1">待审核</el-radio>
+                <el-radio v-model="searchForm.status" label="2">审核通过</el-radio>
+                <el-radio v-model="searchForm.status" label="3">审核失败</el-radio>
+              </el-form-item>
+    ```
+
+  - v-model：双向绑定，获取被选中的项目  或 设置哪个项目选中
+
+  - label：用于设置当前单选按钮的**value**值情况
+
+  - 添加data成员
+
+- 频道表单域
+
+  - 绘制搜索文章的频道表单域（下拉列表）
+
+    ```vue
+              <el-form-item label="频道列表：">
+                <el-select v-model="searchForm.channel_id" placeholder="请选择">
+                  <el-option
+                          v-for="item in channelList"
+                          :key="item.id"
+                          :label="item.name"
+                          :value="item.id">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+    ```
+
+  - v-model: 双向绑定，获取选中的项目  或 设置哪个项目选中
+
+  - clearable：可以清除选中的项目
+
+  - label  设置每个项目对外提示的名称
+
+  - value 设置每个项目真实起作用的value值
+
+  - 设置data成员channel_id和channelList
+
+- 时间表单域
+
+  - 绘制文章日期选择表单域
+
+    ```vue
+              <el-form-item label="时间选择：">
+                <el-date-picker
+                        v-model="selectTime"
+                        type="daterange"
+                        range-separator="至"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        value-format = "yyyy-MM-dd"
+                >
+                </el-date-picker>
+    ```
+
+  - v-model ：双向绑定，获取设置好的时间信息，或设置哪个时间显示
+
+  - type="daterange" : 类型设置，daterange表示是日期范围选取的，还有其他可选 year/month/date/dates/ week/datetime/datetimerange/ daterange/monthrange 
+
+  - value-format  设置时间格式，例如 yyyy-MM-dd
+
+  - el-date-picker组件的v-model="selectTime"接收到的是一个**数组**信息，里边的第1、2个单元分别代表开始日期和结束日期，要想办法把其分配给searchForm的两个成员(pub_date和 end_data)里边去
+
+- watch监听器
+
+  - 监测vue中data数据的变化，并做相关处理
+
+  - 语法
+
+    ```javascript
+    data(){
+      return {
+        name:'',
+        addr:'',
+        cat:{
+          leg:'',
+          tail:'',
+          son:{
+            name:'小黄',
+            weight:50
+          }
+        }
+      }  
+    }
+    watch:{
+      data成员名称:函数(新值，旧值){}
+      name:function(newv,oldv){},
+      addr:function(newv,oldv){},
+      'cat.leg':function(newv,oldv){},  // 对象成员监听
+      'cat.tail':function(newv,oldv){},
+      cat: { // 深度监听，内部任意成员变化都会感知到
+        handler: function (newv, oldv) { /* ... */ },
+        deep: true
+      },
+    }
+    ```
+
+  - 监听器既可以监听**普通成员**、也可以监听**对象成员**，还可以**深度**监听
+
+  - 一般this可以调用的成员属性都可以监听，例如computed计算属性，但是data作为主要使用对象
+
+  - 深度监听，使用**handler**+**deep**关键字达成
+
+- 监听selectTime
+
+  ```javascript
+    watch: {
+      selectTime: function (newVal, oldVal) {
+        if (newVal) {
+          this.searchForm.pub_date = newVal[0]
+          this.searchForm.end_data = newVal[1]
+        } else {
+          this.searchForm.pub_date = ''
+          this.searchForm.end_data = ''
+        }
+      }
+    }
+  ```
+
+  - 把newVal的值拆分分别给到 begin_pubdate和end_pubdate 里边
+  - 日期选择器有清空功能，因此监听器也要有清空设置	
+
+### 3.3 获得真实频道数据并展示
+
+- 通过axios获得服务器端真实的频道信息
+
+- 创建getChannleList方法获取数据并赋值给data成员的channelList
+
+- 在created中调用getChannleList方法
+
+  ```javascript
+  created () {
+      this.getChannelList()
+    },
+    methods: {
+      getChannelList () {
+        let pro = this.$http.get('/channels')
+        pro
+          .then(result => {
+            if (result.data.message === 'OK') {
+              this.channelList = result.data.data.channels
+            }
+          })
+          .catch(error => {
+            return this.$message.error('获取文章列表出错' + error)
+          })
+      }
+    }
+  ```
+
+### 3.4 文章列表区域
+
+- 用户第一次登录系统时，服务器端返回了一个身份秘钥信息(token)，表明当前用户有 资格、权利 访问服务器
+- token之后通过sessionStorage存储在浏览器中，后续再向服务器发送请求，需要携带token，用以亮明身份。
+- 请求拦截器中给axios配置token
+  - 浏览器中并不是始终存在userinfo的用户信息的，也并不是每次请求都要传递token秘钥信息，故要把包含着token的userinfo获得出来，判断存在再赋予给axios，不做判断贸然使用会有错误
+  - 根据API接口提示，token信息前边需要  “Bearer ”标志，Bearer后边有<font color=red>空格</font>
+  - 如果token秘钥没有配置好，获取文章列表相关axios请求会报如下错误401
+
+### 3.5 将main.js中的axios分离开来添加到一个utils的文件夹中，在src目录下
+
+- 从main.js中把axios相关代码移到新创建的utils下的ax.js里：
+
+  - 因为需要给Vue的原型添加方法，所以要在ax.js里也引入Vue实例
+
+  ```javascript
+  import Vue from 'vue'
+  import axios from 'axios'
   
+  axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/mp/v1_0/'
+  axios.interceptors.request.use((config) => {
+    let userinfo = window.sessionStorage.getItem('userinfo')
+    if (userinfo) {
+      let token = JSON.parse(userinfo).token
+      config.headers.Authorization = 'Bearer ' + token
+    }
+    return config
+  }, (error) => {
+    return Promise.reject(error)
+  }
+  
+  )
+  Vue.prototype.$http = axios
+  
+  ```
+
+- main.js引入已经独立的axios代码文件
+
+  ```javascript
+  import '@/utils/ax.js'
+  ```
+
+- 虽然main.js  和 ax.js都有引入Vue，但是系统运行的时候它们是一个对象，运行在不同文件中而已。
+
+### 3.6 获取文章列表信息
+
+- 创建data成员 articleList: []
+
+- 在methods里边创建  getArticleList()方法，用axios去获得文章列表信息
+
+- 在created中调用 getArticleList() 执行
+
+  ```js
+      getArticleList () {
+        let pro = this.$http.get('/articles')
+        pro
+          .then(result => {
+            console.log(result)
+            if (result.data.message === 'OK') {
+              this.articleList = result.data.data.results
+            }
+          })
+          .catch(error => {
+            return this.$message.error('获取文章列表出错' + error)
+          })
+      }
+  ```
+
+### 3.7 table表格-文章列表展示
+
+- 使用到el-table表格组件
+
+  ```vue
+  <el-table :data="数据来源(数组对象集)" style="width:100%;">
+    <el-table-column label="表格头信息" prop="被显示数据字段名称" width="列宽度(100)"></el-table-column>
+    <el-table-column label="……" prop="……" width="……"></el-table-column>
+    <el-table-column label="……" prop="……" width="……"></el-table-column>
+    <el-table-column label="……" prop="……" width="……"></el-table-column>
+  </el-table>
+  ```
+
+  - data: 数据来源(数据在组件实例的data中有声明)
+  - prop: 定义当前列数据来源的字段名称，来自data数据对象的成员属性名字
+  - label: 定义表格列的表头信息
+  - 列的宽度，如果不设置，就自适应占据宽度
+  - el-table组件内部已经把 “遍历” 机制给集成好了，我们不用额外设置，多条数据会自动形成多行显示
+
+- data中额外声明tot成员接收总记录条数
+
+  ```js
+  data(){
+    return {
+      tot:0 // 全部记录条数
+    }
+  }
+  ```
+
+- getArticleList()方法中把获得好的总记录条数赋予给tot成员
+
+  ```js
+  if (result.data.message === 'OK') {
+     console.log(result)
+     this.articleList = result.data.data.results
+     this.tot = result.data.data.total_count
+  }
+  ```
+
+- 设置外边距，将搜索栏与信息展示栏分隔开
+
+- 操作列展示
+
+  - 有的列不适合通过具体的数据信息直接呈现，例如操作列，里边具体要显示 **修改**、**删除** 两个按钮
+  - 该column列中不要设置**prop**，而修改、删除 按钮等内容通过“**内容区域**”呈现即可
+
+  ```vue
+  <el-table-column
+     label="操作"
+  >
+    <el-button type="primary" size="small">修改</el-button>
+    <el-button type="danger" size="small">删除</el-button>
+  </el-table-column>
+  ```
+
+- 图标列展示
+
+  - 图标列   与  操作列   有相似的地方，所要呈现的内容都不能直接通过prop获取到
+
+  - 现在需要在column列的“内容区域”中手工绘制   **img标签**
+
+  - img标签 绘制完毕，其中的src属性 比较特殊，其需要通过后端数据提供，具体是“**作用域插槽**”
+
+  - stData调用<font color=red>row</font>：代表当前被遍历出来的每个文章记录信息(对象){cover、id、pubdate、status、title等字段}
+
+  - stData.row.cover.images[0]：代表当前被遍历出来的每条记录的图标信息
+
+  - 原理
+
+    ```vue
+    模拟el-table-column组件内容
+    <template>
+    	<div>
+    		<slot row="每个文章的记录信息，是一个对象，里边有各个成员"></slot>
+    	</div>
+    </template>
+    ```
+
+    - 注意： 在每个el-table-column组件内部都可以通过**作用域插槽**获得当前被遍历出来的各个文章信息，插槽属性名称都是**row**	
+
+    - 作用域插槽
+
+      - 子组件
+
+        ```vue
+        <slot a="10" b="20" row="每条文章记录信息，是一个对象，里边有各个成员"></slot>
+        ```
+
+      - 父组件
+
+        ```vue
+        <子组件>
+        	<标签 slot-scope="stData">{{stData.a}}---{{stData.b}}---{{stData.row.xxx}}</标签>
+        </子组件>
+        ```
+
+  - 图标列展示服务器获取到的图片地址，将src的属性和获取到的图片数据的地址绑定
+
+  ```vue
+  <el-table-column
+     label="图标"
+  >
+    <img slot-scope="stData" :src="stData.row.cover.images[0]" alt="没有图标" width="150" height="150">
+  </el-table-column>
+  ```
+
+- 状态列展示
+
+  - 通过el-tag标签组件把文章的状态效果制作出来
+  - el-tag是一个通过type属性体现不同样式效果的组件标签
+  - 多个el-tag组件标签都要使用数据部分，作用域插槽不用体现多份，为了减少重复代码编写量，可以使用一个公共的父级**template标签统一**接收使用
+
+  ```vue
+  <el-table-column
+     prop="status"
+     label="状态"
+  >
+  <template slot-scope="stData">
+  <el-tag v-if="stData.row.status===0">草稿</el-tag>
+  <el-tag v-else-if="stData.row.status===1" type="success">待审核</el-tag>
+  <el-tag v-else-if="stData.row.status===2" type="info">审核通过</el-tag>
+  <el-tag v-else-if="stData.row.status===3" type="warning">审核失败</el-tag>
+  <el-tag v-else type="danger">已删除</el-tag>
+  </template>
+  </el-table-column>
+  ```
+
+- 文章检索，过滤掉searchForm内空的参数
+
+  - 给获得文章的方法getArticleList()增加文章检索条件参数，并对空的条件做过滤
+  - 遍历searchForm的内容，如果存在非空的成员，就将该非空成员赋值到声明的空对象searchData里
+  - 将searchData作为请求参数发送到服务端获取带有相应请求参数的数据
+
+  ```js
+  getArticleList () {
+    let searchData = {}
+      for (let i in this.searchForm) {
+        if (this.searchForm[i]) {
+          searchData[i] = this.searchForm[i]
+        }
+     }
+    let pro = this.$http.get('/articles', { params: searchData })
+    pro
+      .then(result => {
+           if (result.data.message === 'OK') {
+            this.articleList = result.data.data.results
+            this.tot = result.data.data.total_count
+          }
+        })
+      .catch(error => {
+          return this.$message.error('获取文章列表出错' + error)
+       })
+   }
+  ```
+
+### 3.8 下面是第五天的

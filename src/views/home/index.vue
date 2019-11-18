@@ -4,7 +4,7 @@
       <el-menu
               background-color="#545c64"
               text-color="#fff"
-              active-text-color= '#ffd04b'
+              active-text-color='#ffd04b'
               :collapse="isCollapse"
               :collapse-transition="false"
               router
@@ -19,7 +19,7 @@
             <span>内容管理</span>
           </template>
           <el-menu-item index="2-1">发布文章</el-menu-item>
-          <el-menu-item index="2-2">文章列表</el-menu-item>
+          <el-menu-item index="/articleList">文章列表</el-menu-item>
           <el-menu-item index="2-3">评论列表</el-menu-item>
           <el-menu-item index="2-4">素材管理</el-menu-item>
         </el-submenu>
@@ -97,7 +97,8 @@ export default {
         window.sessionStorage.clear()
         this.$router.push({ name: 'login' })
       })
-        .catch(() => {})
+        .catch(() => {
+        })
     }
   }
 }
@@ -107,43 +108,44 @@ export default {
   .el-container {
     height: 100%;
     background-color: #cccccc;
-    }
+  }
 
   .el-aside {
     background-color: #323745;
   }
-    .el-header {
-      background-color: #fff;
+
+  .el-header {
+    background-color: #fff;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    min-width: 950px;
+
+    #lt {
+      width: 45%;
+      height: 100%;
+      font-size: 24px;
       display: flex;
-      justify-content: space-around;
+      justify-content: flex-start;
       align-items: center;
-      padding: 0 10px;
-      min-width: 950px;
-
-      #lt {
-        width: 45%;
-        height: 100%;
-        font-size: 24px;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-      }
-
-      #rt {
-        font-size: 18px;
-        width: 45%;
-        height: 100%;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-
-        .el-dropdown-link {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-      }
     }
+
+    #rt {
+      font-size: 18px;
+      width: 45%;
+      height: 100%;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+
+      .el-dropdown-link {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+    }
+  }
 
 </style>
